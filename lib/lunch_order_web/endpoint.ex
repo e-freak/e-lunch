@@ -35,7 +35,7 @@ defmodule LunchOrderWeb.Endpoint do
   plug Plug.Session,
     store: :cookie,
     key: "_lunch_order_key",
-    signing_salt: "2ooh1ff9"
+    signing_salt: "/52xg28A"
 
   plug LunchOrderWeb.Router
 

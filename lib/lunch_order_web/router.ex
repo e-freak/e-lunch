@@ -13,6 +13,10 @@ defmodule LunchOrderWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :authenticated do
+    plug LunchOrder.Guardian.AuthPipeline
+  end
+
   scope "/", LunchOrderWeb do
     pipe_through :browser # Use the default browser stack
 
@@ -20,7 +24,12 @@ defmodule LunchOrderWeb.Router do
   end
 
   # Other scopes may use custom stacks.
-  # scope "/api", LunchOrderWeb do
-  #   pipe_through :api
-  # end
+  scope "/api", LunchOrderWeb do
+    pipe_through :api
+
+    post "/sign_in", SessionController, :sign_in
+
+    pipe_through :authenticated
+    resources "/users", UserController, except: [:new, :edit]
+  end
 end

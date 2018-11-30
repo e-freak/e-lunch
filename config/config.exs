@@ -12,7 +12,7 @@ config :lunch_order,
 # Configures the endpoint
 config :lunch_order, LunchOrderWeb.Endpoint,
   url: [host: "localhost"],
-  secret_key_base: "/JF0of3NA/Rrb+WA0w8nETEmoxiXwR+8N620Zpv30CiCNtt5Glzm8pc3QnR+hLbt",
+  secret_key_base: "uYpqNsrxap7BKpN3TkwImvqvev1DI6mLu035P9+Pl9g1S7TN4HjnciJkSkTDUsgB",
   render_errors: [view: LunchOrderWeb.ErrorView, accepts: ~w(html json)],
   pubsub: [name: LunchOrder.PubSub,
            adapter: Phoenix.PubSub.PG2]
@@ -21,6 +21,11 @@ config :lunch_order, LunchOrderWeb.Endpoint,
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:user_id]
+
+# COnfigures Guardian
+config :lunch_order, LunchOrder.Guardian,
+  issuer: "lunch_order",
+  secret_key: "pHl6RIeQmZS/JOT/osu76pTE3+O3pXGPq74PgLqDUBGzei4cStZDvzpOTJ/emkd6"
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
