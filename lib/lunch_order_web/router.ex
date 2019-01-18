@@ -21,15 +21,31 @@ defmodule LunchOrderWeb.Router do
     pipe_through :browser # Use the default browser stack
 
     get "/", PageController, :index
+    post "/login", PageController, :login
+    get "/orderlist", PageController, :order_list
   end
 
   # Other scopes may use custom stacks.
   scope "/api", LunchOrderWeb do
     pipe_through :api
 
-    post "/sign_in", SessionController, :sign_in
+    post "/login", SessionController, :login
 
-    pipe_through :authenticated
+
+
+    # pipe_through :authenticated
+    post "/orders/:user/:month", OrderController, :create
+
+    get "/orders/:user/:month", OrderController, :show
+
+    get "/orders/:date", OrderController, :show_all
+
+    get "/users/info", UserController, :private
+
+    # resources "/orders", OrderController, except: [:new, :edit]
+
+    # pipe_through :authenticated
     resources "/users", UserController, except: [:new, :edit]
+
   end
 end

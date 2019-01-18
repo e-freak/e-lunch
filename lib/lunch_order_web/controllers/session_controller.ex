@@ -3,8 +3,8 @@ defmodule LunchOrderWeb.SessionController do
 
   alias LunchOrder.Users.User
 
+  def login(conn, %{"email" => email, "password" => password}) do
 
-  def sign_in(conn, %{"session" => %{"email" => email, "password" => password}}) do
     case User.find_and_confirm_password(email, password) do
       {:ok, user} ->
          {:ok, jwt, _full_claims} =  LunchOrder.Guardian.encode_and_sign(user)
@@ -12,7 +12,7 @@ defmodule LunchOrderWeb.SessionController do
          # IO.inspect(claims)
 
          conn
-         |> render("sign_in.json", user: user, jwt: jwt)
+         |> render("login.json", user: user, jwt: jwt)
       {:error, _reason} ->
         conn
         |> put_status(401)
