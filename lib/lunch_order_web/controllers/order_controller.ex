@@ -46,11 +46,21 @@ defmodule LunchOrderWeb.OrderController do
     # render(conn, "index.json", orders: orders)
   end
 
-  def show_all(conn, param) do
+  def show_all(conn, %{"date" => date}) do
 
-    orders = Orders.list_all_orders(param)
+    orders = Orders.list_all_orders(date)
     users = Users.list_users
     render(conn, "all_orders.json", orders: orders, users: users)
+
+  end
+
+  # 発注FAX文書用データ
+  def show_fax_data(conn, %{"date" => date}) do
+
+    orders = Orders.list_all_orders(date)
+    users = Users.list_users
+
+    render(conn, "fax_orders.json", orders: orders, users: users)
 
   end
 
@@ -73,4 +83,16 @@ defmodule LunchOrderWeb.OrderController do
       send_resp(conn, :no_content, "")
     end
   end
+
+  def outline(conn, %{"month" => month}) do
+
+
+    outline = Orders.outline_order(%{month: month, users: Users.list_users})
+
+    render(conn, "outline.json", outline: outline)
+
+  end
+
+
+
 end

@@ -34,6 +34,10 @@ defmodule LunchOrderWeb.Router do
 
 
     # pipe_through :authenticated
+    get "/orders/outline/:month", OrderController, :outline
+
+    get "/orders/fax/:date", OrderController, :show_fax_data
+
     post "/orders/:user/:month", OrderController, :create
 
     get "/orders/:user/:month", OrderController, :show
@@ -42,10 +46,13 @@ defmodule LunchOrderWeb.Router do
 
     get "/users/info", UserController, :private
 
+
+
     # resources "/orders", OrderController, except: [:new, :edit]
 
     # pipe_through :authenticated
     resources "/users", UserController, except: [:new, :edit]
 
+    resources "/menus", MenuController, except: [:new, :edit]
   end
 end

@@ -43,9 +43,8 @@ defmodule LunchOrder.Orders do
     )
   end
 
-  def list_all_orders(attrs) do
-
-    date = Date.from_iso8601!(attrs["date"])
+  def list_all_orders(date) do
+    date = Date.from_iso8601!(date)
 
     Repo.all(
       from order in Order,
@@ -99,10 +98,22 @@ defmodule LunchOrder.Orders do
         nil -> %Order{}
         old_order -> old_order
       end
-      |> Order.changeset(param)
-      |> Repo.insert_or_update
+      |> update_repp(param)
     end
   end
+
+  defp update_repp(order, param) do
+
+    if param.lunch_type == 0 || param.lunch_count == 0 do
+      Repo.get!(Order, order.id)
+      |> Repo.delete
+    else
+      Order.changeset(order, param)
+      |> Repo.insert_or_update
+    end
+
+  end
+
 
   defp get_order(%{user_id: user_id, date: date}) do
     Repo.one(
@@ -159,6 +170,23 @@ defmodule LunchOrder.Orders do
   def change_order(%Order{} = order) do
     Order.changeset(order, %{})
   end
+
+
+  @lunch_name ["○", "大", "小", "お", "ご", "客", "牛", "カ"]
+  @lunch_price [300, 320, 280, 250, 150, 864, 350, 350]
+
+  def outline_order(%{month: month, users: users}) do
+
+    for user <- users do
+      orders = list_orders(%{"month" => month, "user" => Integer.to_string(user.id)})
+      sum = Enum.reduce(orders, 0, fn x, acc -> Enum.at(@lunch_price, x.lunch_type) + acc end)
+      %{organization: user.organization, id: user.user_id, name: user.name, sum: sum}
+    end
+
+  end
+
+
+
 
 
   # def get_today_order do

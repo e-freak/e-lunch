@@ -36,6 +36,51 @@ defmodule LunchOrderWeb.OrderView do
       fn(order) -> create_order(order, users) end)
   end
 
+  # 発注FAX文書用
+  def render("fax_orders.json", %{orders: orders, users: users}) do
+
+    # 社員か派遣か
+    %{
+      "RITS" => Enum.filter(orders, fn order -> is_rits?(order, users) end) |> count_menu_by_floor,
+      "Others" => Enum.filter(orders, fn order -> is_rits?(order, users) == false end) |> count_menu_by_floor
+    }
+
+  end
+
+
+
+  # 注文合計
+  def render("outline.json", %{outline: outline}) do
+    Enum.group_by(outline,
+      fn(data) -> if data.organization == "RITS", do: "RITS", else: "Others" end,
+      fn(data) -> [data.id, data.name, data.sum] end)
+  end
+
+  defp is_rits?(order, users) do
+    id = String.to_integer(order.user_id)
+    user = Enum.find(users, fn u -> u.id == id end)
+    user.organization == "RITS"
+  end
+
+
+
+  @floor_list 5..9
+  defp count_menu_by_floor(orders) do
+    Map.new(@floor_list, fn floor ->
+      floor_orders = Enum.filter(orders, fn order -> order.floor == floor end)
+      {floor, count_menu(floor_orders)}
+    end)
+
+  end
+
+  @menu_ids 0..7
+  defp count_menu(orders) do
+    Enum.map(@menu_ids, fn lunch_type ->
+      Enum.reduce(orders, 0, fn order, acc ->
+        acc + if order.lunch_type == lunch_type, do: order.lunch_count, else: 0 end)
+    end)
+  end
+
   # ここら辺が関数型言語っぽい
   # 一時変数を作ってリストを構築するやり方はできない。
   defp createList(orders) do
