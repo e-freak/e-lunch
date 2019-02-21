@@ -25,14 +25,22 @@ defmodule LunchOrderWeb.OrderController do
 
   def create(conn, params) do
 
-    with {:ok, %Order{} = order} <- Orders.create_order(params) do
+    # 注文の更新
+    if Orders.create_order(params) do
+      # フロアの更新
+      user = Users.get_user!(params["user"])
+      Users.update_user(user, %{floor: params["floor"]})
+
+      # show
+      orders = Orders.list_orders(params)
+      user = Users.get_user!(params["user"])
+      render(conn, "orders.json", floor: user.floor, orders: orders)
+    else
       conn
-      |> put_status(:created)
-      # |> put_resp_header("location", order_path(conn, :show, order))
-      # |> render("show.json", order: order)
+      |> put_status(400)
+      |> render("error.json", error: "invalid order date")
     end
 
-    send_resp(conn, :no_content, "")
 
   end
 
@@ -42,7 +50,8 @@ defmodule LunchOrderWeb.OrderController do
     # render(conn, "show.json", order: order)
 
     orders = Orders.list_orders(param)
-    render(conn, "orders.json", floor: 7, orders: orders)
+    user = Users.get_user!(param["user"])
+    render(conn, "orders.json", floor: user.floor, orders: orders)
     # render(conn, "index.json", orders: orders)
   end
 
@@ -50,7 +59,7 @@ defmodule LunchOrderWeb.OrderController do
 
     orders = Orders.list_all_orders(date)
     users = Users.list_users
-    render(conn, "all_orders.json", orders: orders, users: users)
+    render(conn, "all_orders.json", orders: orders, users: users, date: date)
 
   end
 
@@ -85,7 +94,6 @@ defmodule LunchOrderWeb.OrderController do
   end
 
   def outline(conn, %{"month" => month}) do
-
 
     outline = Orders.outline_order(%{month: month, users: Users.list_users})
 

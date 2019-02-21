@@ -44,7 +44,11 @@ defmodule LunchOrder.Mixfile do
       {:plug_cowboy, "~> 1.0"},
       {:guardian, "~> 1.0"},
       {:comeonin, "~> 3.0"},
-      {:poison, "~> 3.1"}
+      {:poison, "~> 3.1"},
+      {:bamboo, "~> 0.7"},
+      {:bamboo_smtp, "~> 1.2.1"},
+      {:quantum, "~> 2.3"},
+      {:timex, "~> 3.0"}
     ]
   end
 

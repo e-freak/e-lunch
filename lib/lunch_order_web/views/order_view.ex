@@ -29,11 +29,24 @@ defmodule LunchOrderWeb.OrderView do
     %{floor: floor, orders: orderList}
   end
 
-    # 全員注文一覧(日)
-  def render("all_orders.json", %{orders: orders, users: users}) do
+  # 全員注文一覧(日)
+  @time_limit ~T[09:30:00]
+  def render("all_orders.json", %{orders: orders, users: users, date: date}) do
+
+
+    now = Timex.now("Asia/Tokyo")
+    today = DateTime.to_date now
+    time = DateTime.to_time now
+    order_date = Date.from_iso8601!(date)
+
+    is_close = order_date < today || (order_date == today && Time.compare(time, @time_limit) == :gt)
+
     Enum.group_by(orders,
       fn(order) -> order.floor end,
-      fn(order) -> create_order(order, users) end)
+      fn(order) -> create_order(order, users) end
+    )
+    |> Map.put(:is_close, is_close)
+
   end
 
   # 発注FAX文書用
@@ -56,6 +69,11 @@ defmodule LunchOrderWeb.OrderView do
       fn(data) -> [data.id, data.name, data.sum] end)
   end
 
+  # エラー
+  def render("error.json", %{error: error}) do
+    %{error: error}
+  end
+
   defp is_rits?(order, users) do
     id = String.to_integer(order.user_id)
     user = Enum.find(users, fn u -> u.id == id end)
@@ -73,7 +91,7 @@ defmodule LunchOrderWeb.OrderView do
 
   end
 
-  @menu_ids 0..7
+  @menu_ids 1..8
   defp count_menu(orders) do
     Enum.map(@menu_ids, fn lunch_type ->
       Enum.reduce(orders, 0, fn order, acc ->

@@ -56,3 +56,19 @@ config :lunch_order, LunchOrder.Repo,
   database: "lunch_order_dev",
   hostname: "localhost",
   pool_size: 10
+
+config :lunch_order, LunchOrder.Mailer,
+  adapter: Bamboo.SMTPAdapter,
+  server: "mail.ricoh.co.jp",
+  port: 25,
+  username: "",
+  password: "",
+  tls: :never,
+  ssl: false,
+  retries: 1
+
+config :lunch_order, LunchOrder.Scheduler,
+  timezone: "Asia/Tokyo",
+  jobs: [
+    {"30 9 * * *", {LunchOrder.Notification, :notify_order_by_email, []}}
+  ]

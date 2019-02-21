@@ -8,6 +8,7 @@ defmodule LunchOrder.Repo.Migrations.CreateUsers do
       add :password_hash, :string
       add :email, :string
       add :organization, :string
+      add :floor, :integer
       add :is_admin, :boolean, default: false, null: false
 
       timestamps()

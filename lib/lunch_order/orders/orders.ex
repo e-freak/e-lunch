@@ -70,6 +70,8 @@ defmodule LunchOrder.Orders do
   def get_order!(id), do: Repo.get!(Order, id)
 
 
+  @time_limit ~T[09:30:00]
+
   @doc """
   Creates a order.
 
@@ -84,26 +86,46 @@ defmodule LunchOrder.Orders do
   """
   def create_order(attrs \\ %{}) do
 
-    for order <- attrs["orders"] do
-      # YYYY-MM-DD形式
-      day = Integer.to_string(Enum.at(order, 0))
-      date = attrs["month"] <> "-" <> String.pad_leading(day, 2, "0") #ゼロ埋め
+    case is_valid_date_time(attrs["orders"], attrs["month"]) do
+      true ->
+        for order <- attrs["orders"] do
+          # YYYY-MM-DD形式
+          day = Integer.to_string(Enum.at(order, 0))
+          date = attrs["month"] <> "-" <> String.pad_leading(day, 2, "0") #ゼロ埋め
 
-      type = Enum.at(order, 1)
-      count = Enum.at(order, 2)
-      param = %{date: date, floor: attrs["floor"], lunch_count: count, lunch_type: type, user_id: attrs["user"]}
+          type = Enum.at(order, 1)
+          count = Enum.at(order, 2)
+          param = %{date: date, floor: attrs["floor"], lunch_count: count, lunch_type: type, user_id: attrs["user"]}
 
-      # 注文データがなければDB挿入、あればDB更新
-      case get_order(param) do
-        nil -> %Order{}
-        old_order -> old_order
-      end
-      |> update_repp(param)
+          # 過去の注文編集不可
+          update_repp(param)
+        end
+        true
+      false -> false
     end
   end
 
-  defp update_repp(order, param) do
+  defp is_valid_date_time(orders, month) do
+    # 締め処理後の注文が含まれていないかどうか
+    now = Timex.now("Asia/Tokyo")
+    today = DateTime.to_date now
+    time = DateTime.to_time now
+    Enum.map(orders, fn order ->
+      day = Integer.to_string(Enum.at(order, 0))
+      date = month <> "-" <> String.pad_leading(day, 2, "0") #ゼロ埋め
+      order_date = Date.from_iso8601!(date)
+      order_date > today || (order_date == today && Time.compare(time, @time_limit) == :lt)
+    end)
+    |> Enum.all?()
+  end
 
+  defp update_repp(param) do
+    order = case get_order(param) do
+      nil -> %Order{}
+      old_order -> old_order
+    end
+
+    # 注文データがなければDB挿入、あればDB更新
     if param.lunch_type == 0 || param.lunch_count == 0 do
       Repo.get!(Order, order.id)
       |> Repo.delete
@@ -179,7 +201,7 @@ defmodule LunchOrder.Orders do
 
     for user <- users do
       orders = list_orders(%{"month" => month, "user" => Integer.to_string(user.id)})
-      sum = Enum.reduce(orders, 0, fn x, acc -> Enum.at(@lunch_price, x.lunch_type) + acc end)
+      sum = Enum.reduce(orders, 0, fn x, acc -> Enum.at(@lunch_price, x.lunch_type - 1) * x.lunch_count + acc end)
       %{organization: user.organization, id: user.user_id, name: user.name, sum: sum}
     end
 

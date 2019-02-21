@@ -14,7 +14,7 @@ defmodule LunchOrderWeb.UserView do
     %{id: user.id,
       user_id: user.user_id,
       name: user.name,
-      password_hash: user.password_hash,
+      floor: user.floor,
       email: user.email,
       organization: user.organization,
       is_admin: user.is_admin}

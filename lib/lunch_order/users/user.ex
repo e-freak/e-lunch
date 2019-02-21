@@ -10,11 +10,18 @@ defmodule LunchOrder.Users.User do
     field :is_admin, :boolean, default: false
     field :name, :string
     field :organization, :string
+    field :floor, :integer, default: 6
     field :password, :string, virtual: true
     field :password_hash, :string
     field :user_id, :string
 
     timestamps()
+  end
+
+  # floorの更新
+  def changeset(user, %{floor: _} = attrs) do
+    user
+    |> cast(attrs, [:floor])
   end
 
   @doc false
@@ -30,8 +37,8 @@ defmodule LunchOrder.Users.User do
     |> validate_length(:email, min: 5, max: 255)
     |> validate_format(:email, ~r/@/)
     |> unique_constraint(:email)
-    |> validate_length(:password, min: 8)
-    |> validate_format(:password, ~r/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).*/, [message: "Must include at least one lowercase letter, one uppercase letter, and one digit"])
+    |> validate_length(:password, min: 12)
+    # |> validate_format(:password, ~r/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).*/, [message: "Must include at least one lowercase letter, one uppercase letter, and one digit"])
     |> generate_password_hash
   end
 
@@ -56,4 +63,5 @@ defmodule LunchOrder.Users.User do
         end
     end
   end
+
 end
