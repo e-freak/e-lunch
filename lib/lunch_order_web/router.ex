@@ -17,6 +17,10 @@ defmodule LunchOrderWeb.Router do
     plug LunchOrder.Guardian.AuthPipeline
   end
 
+  pipeline :admin_authenticated do
+    plug LunchOrder.AdminPipeline
+  end
+
   scope "/", LunchOrderWeb do
     pipe_through :browser # Use the default browser stack
 
@@ -31,28 +35,34 @@ defmodule LunchOrderWeb.Router do
 
     post "/login", SessionController, :login
 
+    # ログイン後
+    pipe_through :authenticated
 
-
-    # pipe_through :authenticated
+    # この2つは管理者用だが、下に持って行くと、先に/orders/:userがマッチしてしまうので上に置いておく
     get "/orders/outline/:month", OrderController, :outline
-
     get "/orders/fax/:date", OrderController, :show_fax_data
+    get "/orders/detail/:year_month", OrderController, :show_detail
 
     post "/orders/:user/:month", OrderController, :create
-
     get "/orders/:user/:month", OrderController, :show
-
     get "/orders/:date", OrderController, :show_all
-
     get "/users/info", UserController, :private
 
-
-
-    # resources "/orders", OrderController, except: [:new, :edit]
-
-    # pipe_through :authenticated
-    resources "/users", UserController, except: [:new, :edit]
+    resources "/users", UserController, only: [:index, :show, :update]
 
     resources "/menus", MenuController, except: [:new, :edit]
+
+    get "/holidays/:year_month", HolidayController, :show
+
+    # 管理者用
+    pipe_through :admin_authenticated
+
+    resources "/users", UserController, only: [:create, :delete]
+
+    post "/holidays/:year_month", HolidayController, :update
+
+
+
+
   end
 end

@@ -26,20 +26,15 @@ defmodule LunchOrderWeb.OrderView do
 
     # ここら辺が関数型言語っぽい
     orderList = createList(orders)
-    %{floor: floor, orders: orderList}
+    %{floor: floor, orders: orderList, is_close_today: is_close_order_today()}
   end
 
   # 全員注文一覧(日)
   @time_limit ~T[09:30:00]
   def render("all_orders.json", %{orders: orders, users: users, date: date}) do
 
-
-    now = Timex.now("Asia/Tokyo")
-    today = DateTime.to_date now
-    time = DateTime.to_time now
-    order_date = Date.from_iso8601!(date)
-
-    is_close = order_date < today || (order_date == today && Time.compare(time, @time_limit) == :gt)
+    # 締め処理完了フラグ
+    is_close = is_close_order(date)
 
     Enum.group_by(orders,
       fn(order) -> order.floor end,
@@ -69,9 +64,35 @@ defmodule LunchOrderWeb.OrderView do
       fn(data) -> [data.id, data.name, data.sum] end)
   end
 
+  def render("detail.json", %{details: details}) do
+    Enum.group_by(details,
+      fn(data) -> if data.organization == "RITS", do: "RITS", else: "Others" end,
+      fn(data) ->
+        %{id: data.id,
+          floor: data.floor,
+          name: data.name,
+          amount: data.amount,
+          orders: data.orders}
+      end)
+  end
+
   # エラー
   def render("error.json", %{error: error}) do
     %{error: error}
+  end
+
+  defp is_close_order(date) do
+    now = Timex.now("Asia/Tokyo")
+    today = DateTime.to_date now
+    time = DateTime.to_time now
+    order_date = Date.from_iso8601!(date)
+    order_date < today || (order_date == today && Time.compare(time, @time_limit) == :gt)
+  end
+
+  defp is_close_order_today do
+    now = Timex.now("Asia/Tokyo")
+    time = DateTime.to_time now
+    Time.compare(time, @time_limit) == :gt
   end
 
   defp is_rits?(order, users) do

@@ -26,20 +26,16 @@ defmodule LunchOrderWeb.OrderController do
   def create(conn, params) do
 
     # 注文の更新
-    if Orders.create_order(params) do
-      # フロアの更新
-      user = Users.get_user!(params["user"])
-      Users.update_user(user, %{floor: params["floor"]})
+    Orders.create_order(params)
 
-      # show
-      orders = Orders.list_orders(params)
-      user = Users.get_user!(params["user"])
-      render(conn, "orders.json", floor: user.floor, orders: orders)
-    else
-      conn
-      |> put_status(400)
-      |> render("error.json", error: "invalid order date")
-    end
+    # フロアの更新
+    Users.get_user!(params["user"])
+    |> Users.update_user(%{floor: params["floor"]})
+
+    # show
+    orders = Orders.list_orders(params)
+    user = Users.get_user!(params["user"])
+    render(conn, "orders.json", floor: user.floor, orders: orders)
 
 
   end
@@ -101,6 +97,13 @@ defmodule LunchOrderWeb.OrderController do
 
   end
 
+  # 注文詳細
+  def show_detail(conn, %{"year_month" => year_month}) do
+
+    details = Orders.detail_order(%{year_month: year_month, users: Users.list_users})
+    render(conn, "detail.json", details: details)
+
+  end
 
 
 end

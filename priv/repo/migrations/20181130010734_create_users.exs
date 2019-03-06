@@ -14,5 +14,8 @@ defmodule LunchOrder.Repo.Migrations.CreateUsers do
       timestamps()
     end
 
+    create unique_index(:users, [:user_id])
+    create unique_index(:users, [:email])
+
   end
 end

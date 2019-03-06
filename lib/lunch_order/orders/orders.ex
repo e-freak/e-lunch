@@ -86,37 +86,37 @@ defmodule LunchOrder.Orders do
   """
   def create_order(attrs \\ %{}) do
 
-    case is_valid_date_time(attrs["orders"], attrs["month"]) do
-      true ->
-        for order <- attrs["orders"] do
-          # YYYY-MM-DD形式
-          day = Integer.to_string(Enum.at(order, 0))
-          date = attrs["month"] <> "-" <> String.pad_leading(day, 2, "0") #ゼロ埋め
+    [year, month] = String.split(attrs["month"], "-")
+    holidays = LunchOrder.Holidays.get_holiday(String.to_integer(year), String.to_integer(month))
 
-          type = Enum.at(order, 1)
-          count = Enum.at(order, 2)
-          param = %{date: date, floor: attrs["floor"], lunch_count: count, lunch_type: type, user_id: attrs["user"]}
+    for order <- attrs["orders"] do
+      # YYYY-MM-DD形式
+      day = Integer.to_string(Enum.at(order, 0))
+      date = attrs["month"] <> "-" <> String.pad_leading(day, 2, "0") #ゼロ埋め
 
-          # 過去の注文編集不可
-          update_repp(param)
-        end
-        true
-      false -> false
+      type = Enum.at(order, 1)
+      count = Enum.at(order, 2)
+      param = %{date: date, floor: attrs["floor"], lunch_count: count, lunch_type: type, user_id: attrs["user"]}
+
+      # 過去の注文&土日祝日 編集不可
+      if is_valid_date_time(date, holidays.days) do
+        update_repp(param)
+      end
     end
   end
 
-  defp is_valid_date_time(orders, month) do
-    # 締め処理後の注文が含まれていないかどうか
+  defp is_valid_date_time(date, holidays) do
     now = Timex.now("Asia/Tokyo")
     today = DateTime.to_date now
     time = DateTime.to_time now
-    Enum.map(orders, fn order ->
-      day = Integer.to_string(Enum.at(order, 0))
-      date = month <> "-" <> String.pad_leading(day, 2, "0") #ゼロ埋め
-      order_date = Date.from_iso8601!(date)
-      order_date > today || (order_date == today && Time.compare(time, @time_limit) == :lt)
-    end)
-    |> Enum.all?()
+    order_date = Date.from_iso8601!(date)
+
+    # 休日かどうか
+    is_holiday = Enum.any?(holidays, fn day -> day == order_date.day end) || Date.day_of_week(order_date) > 5
+    # 締め処理後の注文が含まれていないかどうか
+    is_future = Date.compare(order_date, today) == :gt || (order_date == today && Time.compare(time, @time_limit) == :lt)
+
+    is_future && !is_holiday
   end
 
   defp update_repp(param) do
@@ -176,6 +176,16 @@ defmodule LunchOrder.Orders do
       {:error, %Ecto.Changeset{}}
 
   """
+
+  # 任意の日の注文を全て削除
+  def delete_orders(date) do
+    date
+    |> LunchOrder.Orders.list_all_orders
+    |> Enum.each(fn order ->
+      LunchOrder.Orders.delete_order order
+    end)
+  end
+
   def delete_order(%Order{} = order) do
     Repo.delete(order)
   end
@@ -205,6 +215,20 @@ defmodule LunchOrder.Orders do
       %{organization: user.organization, id: user.user_id, name: user.name, sum: sum}
     end
 
+  end
+
+  def detail_order(%{year_month: year_month, users: users}) do
+
+    days_in_month = Date.from_iso8601!(year_month <> "-01") |> Date.days_in_month
+    for user <- users do
+      orders = list_orders(%{"month" => year_month, "user" => Integer.to_string(user.id)})
+      amount = Enum.reduce(orders, 0, fn x, acc -> Enum.at(@lunch_price, x.lunch_type - 1) * x.lunch_count + acc end)
+      orders = Enum.map(1..days_in_month, fn day ->
+        if order = Enum.find(orders, fn order -> order.date.day == day end), do: order.lunch_type, else: 0
+      end)
+
+      %{organization: user.organization, id: user.user_id, floor: user.floor, name: user.name, amount: amount, orders: orders}
+    end
   end
 
 

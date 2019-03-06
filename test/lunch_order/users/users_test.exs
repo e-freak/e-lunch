@@ -71,7 +71,7 @@ defmodule LunchOrder.UsersTest do
     end
   end
 
-  describe "users" do
+  describe "users_" do
     alias LunchOrder.Users.User
 
     @valid_attrs %{email: "some email", is_admin: true, name: "some name", organization: "some organization", password_hash: "some password_hash", user_id: "some user_id"}

@@ -14,9 +14,12 @@ defmodule LunchOrderWeb.UserView do
     %{id: user.id,
       user_id: user.user_id,
       name: user.name,
-      floor: user.floor,
       email: user.email,
       organization: user.organization,
       is_admin: user.is_admin}
+  end
+
+  def render("error.json", %{error: error}) do
+    %{error: error}
   end
 end

@@ -7,11 +7,8 @@ defmodule LunchOrderWeb.UserController do
   action_fallback LunchOrderWeb.FallbackController
 
   def index(conn, _params) do
-    #  mail test
-      # LunchOrder.Notification.notify_order_by_email
-    #
-
     users = Users.list_users()
+    LunchOrder.Log.log_data
     render(conn, "index.json", users: users)
   end
 
@@ -31,10 +28,22 @@ defmodule LunchOrderWeb.UserController do
   end
 
   def update(conn, user_params) do
-    user = Users.get_user!(user_params["id"])
+    id = user_params["id"]
+    user = Users.get_user!(id)
 
-    with {:ok, %User{} = user} <- Users.update_user(user, user_params) do
-      render(conn, "show.json", user: user)
+    access_user = get_user_from_token(conn)
+    is_same_user = (String.to_integer(id) == access_user.id)
+    password_only = map_size(user_params) == 2 && Map.has_key?(user_params, "password")
+    case {access_user.is_admin, is_same_user, password_only} do
+      # 一般ユーザーが変更できるのは自分自身のパスワードのみ
+      {false, false, _} ->
+        render(conn, "error.json", error: "You cannot edit other user's info")
+      {false, true, false} ->
+        render(conn, "error.json", error: "You can edit password only")
+      _ ->
+        with {:ok, %User{} = user} <- Users.update_user(user, user_params) do
+          render(conn, "show.json", user: user)
+        end
     end
   end
 
@@ -46,14 +55,16 @@ defmodule LunchOrderWeb.UserController do
   end
 
   def private(conn, _param) do
-
     # トークンからIDを取得
+    user = get_user_from_token(conn)
+    render(conn, "show.json", user: user)
+  end
+
+  defp get_user_from_token(conn) do
     auth_header = Enum.find(conn.req_headers, fn header -> elem(header, 0) == "authorization" end)
     token = String.slice(elem(auth_header, 1), 7..-1)
     decode = LunchOrder.Guardian.decode_and_verify(token)
     id = String.to_integer(elem(decode, 1)["sub"])
-
-    user = Users.get_user!(id)
-    render(conn, "show.json", user: user)
+    Users.get_user!(id)
   end
 end

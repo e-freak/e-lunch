@@ -8,6 +8,10 @@ defmodule LunchOrder.Menus do
 
   alias LunchOrder.Menus.Menu
 
+  @lunch_mark ["○", "大", "小", "お", "ご", "客", "牛", "カ"]
+  @lunch_name ["普通弁当", "普通弁当 ご飯大盛", "普通弁当 ご飯小盛", "おかずのみ", "ご飯のみ", "お客様様弁当", "牛丼", "カレーライス"]
+  @lunch_price [300, 320, 280, 250, 150, 864, 350, 350]
+
   @doc """
   Returns the list of menus.
 

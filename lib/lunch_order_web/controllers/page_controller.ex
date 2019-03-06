@@ -27,11 +27,8 @@ defmodule LunchOrderWeb.PageController do
 
   def order_list(conn, _params) do
     orders = Orders.get_today_order()
-    IO.inspect orders
-    IO.inspect "----orders----"
 
     render conn, "order_list.html", orders: [orders]
-
   end
 
 
