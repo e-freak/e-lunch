@@ -112,11 +112,11 @@ defmodule LunchOrderWeb.OrderView do
 
   end
 
-  @menu_ids 1..8
   defp count_menu(orders) do
-    Enum.map(@menu_ids, fn lunch_type ->
+    menus = LunchOrder.Menus.list_menus
+    Enum.map(menus, fn menu ->
       Enum.reduce(orders, 0, fn order, acc ->
-        acc + if order.lunch_type == lunch_type, do: order.lunch_count, else: 0 end)
+        acc + if order.lunch_type == menu.id, do: order.lunch_count, else: 0 end)
     end)
   end
 

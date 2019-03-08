@@ -3,27 +3,7 @@ defmodule LunchOrder.Menus do
   The Menus context.
   """
 
-  import Ecto.Query, warn: false
-  alias LunchOrder.Repo
-
   alias LunchOrder.Menus.Menu
-
-  @lunch_mark ["○", "大", "小", "お", "ご", "客", "牛", "カ"]
-  @lunch_name ["普通弁当", "普通弁当 ご飯大盛", "普通弁当 ご飯小盛", "おかずのみ", "ご飯のみ", "お客様様弁当", "牛丼", "カレーライス"]
-  @lunch_price [300, 320, 280, 250, 150, 864, 350, 350]
-
-  @doc """
-  Returns the list of menus.
-
-  ## Examples
-
-      iex> list_menus()
-      [%Menu{}, ...]
-
-  """
-  def list_menus do
-    Repo.all(Menu)
-  end
 
   @doc """
   Gets a single menu.
@@ -39,70 +19,32 @@ defmodule LunchOrder.Menus do
       ** (Ecto.NoResultsError)
 
   """
-  def get_menu!(id), do: Repo.get!(Menu, id)
-
-  @doc """
-  Creates a menu.
-
-  ## Examples
-
-      iex> create_menu(%{field: value})
-      {:ok, %Menu{}}
-
-      iex> create_menu(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def create_menu(attrs \\ %{}) do
-    %Menu{}
-    |> Menu.changeset(attrs)
-    |> Repo.insert()
+  def list_menus do
+    [
+      %Menu{id: 1, name: "普通弁当", price: 300, symbol: "○"},
+      %Menu{id: 2, name: "普通弁当 ご飯大盛", price: 320, symbol: "大"},
+      %Menu{id: 3, name: "普通弁当 ご飯小盛", price: 280, symbol: "小"},
+      %Menu{id: 4, name: "おかずのみ", price: 250, symbol: "お"},
+      %Menu{id: 5, name: "ご飯のみ", price: 150, symbol: "ご"},
+      %Menu{id: 6, name: "牛丼", price: 350, symbol: "牛"},
+      %Menu{id: 7, name: "カレーライス", price: 350, symbol: "カ"}
+    ]
   end
 
-  @doc """
-  Updates a menu.
-
-  ## Examples
-
-      iex> update_menu(menu, %{field: new_value})
-      {:ok, %Menu{}}
-
-      iex> update_menu(menu, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def update_menu(%Menu{} = menu, attrs) do
-    menu
-    |> Menu.changeset(attrs)
-    |> Repo.update()
+  def get_menu!(id) do
+    menus = list_menus()
+    Enum.find(menus, fn menu -> menu.id == id end)
   end
 
-  @doc """
-  Deletes a Menu.
-
-  ## Examples
-
-      iex> delete_menu(menu)
-      {:ok, %Menu{}}
-
-      iex> delete_menu(menu)
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def delete_menu(%Menu{} = menu) do
-    Repo.delete(menu)
+  def get_price!(id) do
+    menu = get_menu!(id)
+    menu.price
   end
 
-  @doc """
-  Returns an `%Ecto.Changeset{}` for tracking menu changes.
-
-  ## Examples
-
-      iex> change_menu(menu)
-      %Ecto.Changeset{source: %Menu{}}
-
-  """
-  def change_menu(%Menu{} = menu) do
-    Menu.changeset(menu, %{})
+  def get_symbol!(id) do
+    menu = get_menu!(id)
+    menu.symbol
   end
+
+
 end

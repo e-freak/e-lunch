@@ -50,7 +50,7 @@ defmodule LunchOrderWeb.Router do
 
     resources "/users", UserController, only: [:index, :show, :update]
 
-    resources "/menus", MenuController, except: [:new, :edit]
+    get "/menus", MenuController, :index
 
     get "/holidays/:year_month", HolidayController, :show
 

@@ -7,6 +7,7 @@ defmodule LunchOrder.Orders do
   alias LunchOrder.Repo
 
   alias LunchOrder.Orders.Order
+  alias LunchOrder.Menus
 
   @doc """
   Returns the list of orders.
@@ -24,11 +25,6 @@ defmodule LunchOrder.Orders do
 
   # 個人注文一覧(月)
   def list_orders(attrs) do
-    # field :date, :date
-    # field :floor, :integer
-    # field :lunch_count, :integer
-    # field :lunch_type, :integer
-    # field :user_id, :string
 
     user = attrs["user"]
     month_start = Date.from_iso8601!(attrs["month"] <> "-01")
@@ -89,6 +85,7 @@ defmodule LunchOrder.Orders do
     [year, month] = String.split(attrs["month"], "-")
     holidays = LunchOrder.Holidays.get_holiday(String.to_integer(year), String.to_integer(month))
 
+
     for order <- attrs["orders"] do
       # YYYY-MM-DD形式
       day = Integer.to_string(Enum.at(order, 0))
@@ -99,7 +96,7 @@ defmodule LunchOrder.Orders do
       param = %{date: date, floor: attrs["floor"], lunch_count: count, lunch_type: type, user_id: attrs["user"]}
 
       # 過去の注文&土日祝日 編集不可
-      if is_valid_date_time(date, holidays.days) do
+      if is_valid_date_time(date, holidays) do
         update_repp(param)
       end
     end
@@ -110,9 +107,10 @@ defmodule LunchOrder.Orders do
     today = DateTime.to_date now
     time = DateTime.to_time now
     order_date = Date.from_iso8601!(date)
+    days = if holidays, do: holidays.days, else: []
 
     # 休日かどうか
-    is_holiday = Enum.any?(holidays, fn day -> day == order_date.day end) || Date.day_of_week(order_date) > 5
+    is_holiday = Enum.any?(days, fn day -> day == order_date.day end) || Date.day_of_week(order_date) > 5
     # 締め処理後の注文が含まれていないかどうか
     is_future = Date.compare(order_date, today) == :gt || (order_date == today && Time.compare(time, @time_limit) == :lt)
 
@@ -203,15 +201,11 @@ defmodule LunchOrder.Orders do
     Order.changeset(order, %{})
   end
 
-
-  @lunch_name ["○", "大", "小", "お", "ご", "客", "牛", "カ"]
-  @lunch_price [300, 320, 280, 250, 150, 864, 350, 350]
-
   def outline_order(%{month: month, users: users}) do
 
     for user <- users do
       orders = list_orders(%{"month" => month, "user" => Integer.to_string(user.id)})
-      sum = Enum.reduce(orders, 0, fn x, acc -> Enum.at(@lunch_price, x.lunch_type - 1) * x.lunch_count + acc end)
+      sum = Enum.reduce(orders, 0, fn x, acc -> Menus.get_price!(x.lunch_type) * x.lunch_count + acc end)
       %{organization: user.organization, id: user.user_id, name: user.name, sum: sum}
     end
 
@@ -222,7 +216,7 @@ defmodule LunchOrder.Orders do
     days_in_month = Date.from_iso8601!(year_month <> "-01") |> Date.days_in_month
     for user <- users do
       orders = list_orders(%{"month" => year_month, "user" => Integer.to_string(user.id)})
-      amount = Enum.reduce(orders, 0, fn x, acc -> Enum.at(@lunch_price, x.lunch_type - 1) * x.lunch_count + acc end)
+      amount = Enum.reduce(orders, 0, fn x, acc -> Menus.get_price!(x.lunch_type) * x.lunch_count + acc end)
       orders = Enum.map(1..days_in_month, fn day ->
         if order = Enum.find(orders, fn order -> order.date.day == day end), do: order.lunch_type, else: 0
       end)
