@@ -3,14 +3,13 @@ defmodule LunchOrderWeb.SessionController do
 
   alias LunchOrder.Users.User
 
-  def login(conn, %{"email" => email, "password" => password}) do
+  def login(conn, %{"email" => email, "password" => password_base64}) do
 
+    # パスワードはBase64でデコードする
+    password = Base.decode64!(password_base64)
     case User.find_and_confirm_password(email, password) do
       {:ok, user} ->
          {:ok, jwt, _full_claims} =  LunchOrder.Guardian.encode_and_sign(user)
-         # {:ok, claims} = LunchOrder.Guardian.decode_and_verify(jwt)
-         # IO.inspect(claims)
-
          conn
          |> render("login.json", user: user, jwt: jwt)
       {:error, _reason} ->

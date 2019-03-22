@@ -13,6 +13,10 @@ defmodule LunchOrderWeb.UserController do
   end
 
   def create(conn, user_params) do
+
+    # パスワードをBase64でデコードする
+    password = Base.decode64!(user_params["password"])
+    user_params = Map.put(user_params, "password", password)
     with {:ok, %User{} = user} <- Users.create_user(user_params) do
       conn
       |> put_status(:created)
@@ -34,7 +38,6 @@ defmodule LunchOrderWeb.UserController do
     access_user = get_user_from_token(conn)
     is_same_user = (String.to_integer(id) == access_user.id)
     params = update_user_params(user_params, access_user.is_admin)
-    IO.inspect params
     case {access_user.is_admin, is_same_user} do
       # 一般ユーザーは他人の情報を変更できない
       {false, false} ->
@@ -47,6 +50,13 @@ defmodule LunchOrderWeb.UserController do
   end
 
   defp update_user_params(user_params, is_admin) do
+    # パスワードをBase64でデコードする
+    user_params = if Map.has_key?(user_params, "password") do
+        Map.put(user_params, "password", Base.decode64!(user_params["password"]))
+      else
+        user_params
+      end
+
     # 一般ユーザーが変更できるのはパスワードのみ
     if is_admin, do: user_params, else: Map.take(user_params, ["password"])
   end
