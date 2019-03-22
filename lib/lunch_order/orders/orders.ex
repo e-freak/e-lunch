@@ -125,13 +125,14 @@ defmodule LunchOrder.Orders do
 
     # 注文データがなければDB挿入、あればDB更新
     if param.lunch_type == 0 || param.lunch_count == 0 do
-      Repo.get!(Order, order.id)
-      |> Repo.delete
+      if order.id != nil do
+        Repo.get!(Order, order.id)
+        |> Repo.delete
+      end
     else
       Order.changeset(order, param)
       |> Repo.insert_or_update
     end
-
   end
 
 
@@ -182,6 +183,16 @@ defmodule LunchOrder.Orders do
     |> Enum.each(fn order ->
       LunchOrder.Orders.delete_order order
     end)
+  end
+
+  # 指定ユーザーの注文を全て削除
+  def delete_orders_by_user(user_id) do
+    Repo.all(
+      from order in Order,
+        where: order.user_id == ^user_id,
+        select: order
+    )
+    |> Enum.each(fn order -> Repo.delete(order) end)
   end
 
   def delete_order(%Order{} = order) do

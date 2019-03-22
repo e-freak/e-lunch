@@ -133,7 +133,7 @@ defmodule LunchOrderWeb.OrderView do
   defp create_order(order, users) do
     id = String.to_integer(order.user_id)
     user = Enum.find(users, fn u -> u.id == id end)
-    [id, user.name, order.lunch_type]
+    [user.name, order.lunch_type, order.lunch_count]
   end
 
 end
