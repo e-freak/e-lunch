@@ -8,7 +8,6 @@ defmodule LunchOrderWeb.UserController do
 
   def index(conn, _params) do
     users = Users.list_users()
-    # LunchOrder.Log.log_data
     render(conn, "index.json", users: users)
   end
 

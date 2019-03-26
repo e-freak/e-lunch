@@ -70,5 +70,5 @@ config :lunch_order, LunchOrder.Mailer,
 config :lunch_order, LunchOrder.Scheduler,
   timezone: "Asia/Tokyo",
   jobs: [
-    {"30 9 * * *", {LunchOrder.Notification, :notify_order_by_email, []}}
+    {"20 9 * * *", {LunchOrder.Closing, :close_order, []}}
   ]

@@ -5,16 +5,13 @@ end
 defmodule LunchOrder.Email do
   import Bamboo.Email
 
-
-  def send_email(mail_address, subject, body) do
+  def send_email(to, from, subject, body) do
     new_email()
-    |> to(mail_address)
-    |> from("no-reply@phoenix.com")
+    |> to(to)
+    |> from(from)
     |> subject(subject)
     |> text_body(body)
     |> LunchOrder.Mailer.deliver_now
   end
-
-
 
 end
