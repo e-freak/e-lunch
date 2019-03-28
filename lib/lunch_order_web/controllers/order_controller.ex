@@ -49,13 +49,19 @@ defmodule LunchOrderWeb.OrderController do
 
   # 個人注文一覧(月)
   def show(conn, param) do
-    # order = Orders.get_order(user)
-    # render(conn, "show.json", order: order)
-
     orders = Orders.list_orders(param)
     user = Users.get_user!(param["user"])
-    render(conn, "orders.json", floor: user.floor, orders: orders)
-    # render(conn, "index.json", orders: orders)
+
+    floor = if Enum.empty?(orders) do
+      # 注文無しの場合は、ユーザー設定に従う。最後に設定した階
+      user.floor
+    else
+      # 注文ありの場合は、その月の最後の注文の設定階に従う
+      last_order = Enum.max_by(orders, fn order -> Date.to_erl(order.date) end)
+      last_order.floor
+    end
+
+    render(conn, "orders.json", floor: floor, orders: orders)
   end
 
   def show_all(conn, %{"date" => date}) do
