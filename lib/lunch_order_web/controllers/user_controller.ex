@@ -34,8 +34,9 @@ defmodule LunchOrderWeb.UserController do
     id = user_params["id"]
     user = Users.get_user!(id)
 
-    access_user = get_user_from_token(conn)
+    access_user = LunchOrder.Guardian.get_user_from_token(conn)
     is_same_user = (String.to_integer(id) == access_user.id)
+
     params = update_user_params(user_params, access_user.is_admin)
     case {access_user.is_admin, is_same_user} do
       # 一般ユーザーは他人の情報を変更できない
@@ -72,15 +73,8 @@ defmodule LunchOrderWeb.UserController do
 
   def private(conn, _param) do
     # トークンからIDを取得
-    user = get_user_from_token(conn)
+    user = LunchOrder.Guardian.get_user_from_token(conn)
     render(conn, "show.json", user: user)
   end
 
-  defp get_user_from_token(conn) do
-    auth_header = Enum.find(conn.req_headers, fn header -> elem(header, 0) == "authorization" end)
-    token = String.slice(elem(auth_header, 1), 7..-1)
-    decode = LunchOrder.Guardian.decode_and_verify(token)
-    id = String.to_integer(elem(decode, 1)["sub"])
-    Users.get_user!(id)
-  end
 end

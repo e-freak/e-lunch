@@ -2,6 +2,7 @@ defmodule LunchOrder.Guardian do
   use Guardian, otp_app: :lunch_order
 
   alias LunchOrder.Repo
+  alias LunchOrder.Users
   alias LunchOrder.Users.User
 
   def subject_for_token(resource, _claims) do
@@ -28,4 +29,13 @@ defmodule LunchOrder.Guardian do
   def resource_from_claims(_claims) do
     {:error, :reason_for_error}
   end
+
+  def get_user_from_token(conn) do
+    auth_header = Enum.find(conn.req_headers, fn header -> elem(header, 0) == "authorization" end)
+    token = String.slice(elem(auth_header, 1), 7..-1)
+    decode = LunchOrder.Guardian.decode_and_verify(token)
+    id = String.to_integer(elem(decode, 1)["sub"])
+    Users.get_user!(id)
+  end
+
 end

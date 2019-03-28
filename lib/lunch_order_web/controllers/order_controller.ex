@@ -8,10 +8,10 @@ defmodule LunchOrderWeb.OrderController do
 
   action_fallback LunchOrderWeb.FallbackController
 
-  def index(conn, _params) do
-    orders = Orders.list_orders()
-    render(conn, "index.json", orders: orders)
-  end
+  # def index(conn, _params) do
+  #   orders = Orders.list_orders()
+  #   render(conn, "index.json", orders: orders)
+  # end
 
   # def create(conn, %{"order" => order_params}) do
   #   with {:ok, %Order{} = order} <- Orders.create_order(order_params) do
@@ -24,20 +24,27 @@ defmodule LunchOrderWeb.OrderController do
 
 
   def create(conn, params) do
+    access_user = LunchOrder.Guardian.get_user_from_token(conn)
+    is_same_user = (String.to_integer(params["user"]) == access_user.id)
 
-    # 注文の更新
-    Orders.create_order(params)
+    if is_same_user do
+      # 注文の更新
+      Orders.create_order(params)
 
-    # フロアの更新
-    Users.get_user!(params["user"])
-    |> Users.update_user(%{floor: params["floor"]})
+      # フロアの更新
+      Users.get_user!(params["user"])
+      |> Users.update_user(%{floor: params["floor"]})
 
-    # show
-    orders = Orders.list_orders(params)
-    user = Users.get_user!(params["user"])
-    render(conn, "orders.json", floor: user.floor, orders: orders)
-
-
+      # show
+      orders = Orders.list_orders(params)
+      user = Users.get_user!(params["user"])
+      render(conn, "orders.json", floor: user.floor, orders: orders)
+    else
+      # 他人の情報を変更できない
+      conn
+      |> put_status(403)
+      |> render("error.json", error: "You cannot edit other user's order")
+    end
   end
 
   # 個人注文一覧(月)
@@ -82,12 +89,12 @@ defmodule LunchOrderWeb.OrderController do
     end
   end
 
-  def delete(conn, %{"id" => id}) do
-    order = Orders.get_order!(id)
-    with {:ok, %Order{}} <- Orders.delete_order(order) do
-      send_resp(conn, :no_content, "")
-    end
-  end
+  # def delete(conn, %{"id" => id}) do
+  #   order = Orders.get_order!(id)
+  #   with {:ok, %Order{}} <- Orders.delete_order(order) do
+  #     send_resp(conn, :no_content, "")
+  #   end
+  # end
 
   def outline(conn, %{"month" => month}) do
 
