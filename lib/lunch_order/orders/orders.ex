@@ -66,7 +66,6 @@ defmodule LunchOrder.Orders do
   def get_order!(id), do: Repo.get!(Order, id)
 
 
-  @time_limit ~T[09:30:00]
 
   @doc """
   Creates a order.
@@ -112,7 +111,8 @@ defmodule LunchOrder.Orders do
     # 休日かどうか
     is_holiday = Enum.any?(days, fn day -> day == order_date.day end) || Date.day_of_week(order_date) > 5
     # 締め処理後の注文が含まれていないかどうか
-    is_future = Date.compare(order_date, today) == :gt || (order_date == today && Time.compare(time, @time_limit) == :lt)
+    time_limit = Application.get_env(:lunch_order, :order_time_limit)
+    is_future = Date.compare(order_date, today) == :gt || (order_date == today && Time.compare(time, time_limit) == :lt)
 
     is_future && !is_holiday
   end

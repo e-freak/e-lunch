@@ -30,7 +30,6 @@ defmodule LunchOrderWeb.OrderView do
   end
 
   # 全員注文一覧(日)
-  @time_limit ~T[09:30:00]
   def render("all_orders.json", %{orders: orders, users: users, date: date}) do
 
     # 締め処理完了フラグ
@@ -82,17 +81,21 @@ defmodule LunchOrderWeb.OrderView do
   end
 
   defp is_close_order(date) do
+    time_limit =  Application.get_env(:lunch_order, :order_time_limit)
+
     now = Timex.now("Asia/Tokyo")
     today = DateTime.to_date now
     time = DateTime.to_time now
     order_date = Date.from_iso8601!(date)
-    order_date < today || (order_date == today && Time.compare(time, @time_limit) == :gt)
+    order_date < today || (order_date == today && Time.compare(time, time_limit) == :gt)
   end
 
   defp is_close_order_today do
+    time_limit =  Application.get_env(:lunch_order, :order_time_limit)
+
     now = Timex.now("Asia/Tokyo")
     time = DateTime.to_time now
-    Time.compare(time, @time_limit) == :gt
+    Time.compare(time, time_limit) == :gt
   end
 
   defp is_rits?(order, users) do

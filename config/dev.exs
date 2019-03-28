@@ -72,3 +72,7 @@ config :lunch_order, LunchOrder.Scheduler,
   jobs: [
     {"20 9 * * *", {LunchOrder.Closing, :close_order, []}}
   ]
+
+config :lunch_order,
+  order_time_limit: ~T[09:20:00],
+  from_mail_address: "no-reply@phoenix.com"
