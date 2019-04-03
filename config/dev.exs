@@ -67,12 +67,14 @@ config :lunch_order, LunchOrder.Mailer,
   ssl: false,
   retries: 1
 
-config :lunch_order, LunchOrder.Scheduler,
-  timezone: "Asia/Tokyo",
-  jobs: [
-    {"20 9 * * *", {LunchOrder.Closing, :close_order, []}}
-  ]
+# config :lunch_order, LunchOrder.Scheduler,
+#   timezone: "Asia/Tokyo",
+#   jobs: [
+#     {"20 9 * * *", {LunchOrder.Closing, :close_order, []}}
+#   ]
 
 config :lunch_order,
   order_time_limit: ~T[09:20:00],
-  from_mail_address: "no-reply@phoenix.com"
+  from_mail_address: {"お弁当注文システム", "no-reply@phoenix.com"},
+  locks_bcc_address: ["no-reply@phoenix.com"],
+  closing_to_address: ["no-reply@phoenix.com"]
