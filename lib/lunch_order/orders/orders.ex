@@ -234,6 +234,7 @@ defmodule LunchOrder.Orders do
 
       %{organization: user.organization, id: user.user_id, floor: user.floor, name: user.name, amount: amount, orders: orders}
     end
+    |> Enum.sort(&(&1.floor <= &2.floor))
   end
 
 
