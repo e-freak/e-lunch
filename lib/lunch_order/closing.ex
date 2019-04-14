@@ -50,7 +50,8 @@ defmodule LunchOrder.Closing do
       menu = LunchOrder.Menus.get_symbol!(order.lunch_type)
       "<tr><td>#{order.floor}階</td><td>#{user.name}</td><td>#{menu}</td><td>#{order.lunch_count}</td></tr>"
     end)
-    body = "<table border=\"1\">" <> title <> Enum.join(items) <> "</table>"
+    url = Application.get_env(:lunch_order, :fax_url)
+    body = url <> "<br><br>" <> "<table border=\"1\">" <> title <> Enum.join(items) <> "</table>"
 
     from = Application.get_env(:lunch_order, :from_mail_address)
     to = Application.get_env(:lunch_order, :closing_to_address)
