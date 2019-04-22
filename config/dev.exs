@@ -75,7 +75,7 @@ config :lunch_order, LunchOrder.Mailer,
 
 config :lunch_order,
   order_time_limit: ~T[09:20:00],
-  from_mail_address: {"お弁当注文システム", "no-reply@phoenix.com"},
-  locks_bcc_address: ["no-reply@phoenix.com"],
-  closing_to_address: ["no-reply@phoenix.com"],
+  from_address: {"お弁当注文システム", "no-reply@phoenix.com"},
+  admin_address: ["no-reply@phoenix.com"],
+  bcc_address: ["no-reply@phoenix.com"],
   fax_url: "https://phoenix.com/faxinfo"

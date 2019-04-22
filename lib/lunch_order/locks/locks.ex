@@ -69,11 +69,13 @@ defmodule LunchOrder.Locks do
 
     if (Enum.count(list) >= @lock_count) do
       # メール通知
-      from = Application.get_env(:lunch_order, :from_mail_address)
-      bcc = Application.get_env(:lunch_order, :locks_bcc_address)
-      subject = "アカウントがロックされました"
+      from = Application.get_env(:lunch_order, :from_address)
+      cc = Application.get_env(:lunch_order, :admin_address)
+      bcc = Application.get_env(:lunch_order, :bcc_address)
+      user = Repo.get_by(User, email: email)
+      subject = "#{user.name} さんのアカウントがロックされました"
       body = "ログインに複数回失敗したため、アカウントを10分間ロックします。"
-      LunchOrder.Email.send_email(from, email, bcc, subject, body)
+      LunchOrder.Email.send_email(from, email, cc, bcc, subject, body)
     end
   end
 

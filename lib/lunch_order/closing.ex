@@ -24,7 +24,7 @@ defmodule LunchOrder.Closing do
 
   # ユーザーに本日の注文内容をメール通知する
   defp notify_order(order_list) do
-    from_address = Application.get_env(:lunch_order, :from_mail_address)
+    from_address = Application.get_env(:lunch_order, :from_address)
 
     Enum.each(order_list, fn order ->
       user = Users.get_user!(order.user_id)
@@ -32,7 +32,7 @@ defmodule LunchOrder.Closing do
       lunch = Menus.get_symbol!(order.lunch_type)
       subject = "(本日のお弁当) #{date} ｜#{lunch}｜#{order.lunch_count}個｜#{order.floor}階｜ #{user.name}"
       body = "※注文内容の変更は、受け付けていません。"
-      Email.send_email(from_address, user.email, [], subject, body)
+      Email.send_email(from_address, user.email, [], [], subject, body)
     end)
   end
 
@@ -51,11 +51,12 @@ defmodule LunchOrder.Closing do
       "<tr><td>#{order.floor}階</td><td>#{user.name}</td><td>#{menu}</td><td>#{order.lunch_count}</td></tr>"
     end)
     url = Application.get_env(:lunch_order, :fax_url)
-    body = url <> "<br><br>" <> "<table border=\"1\">" <> title <> Enum.join(items) <> "</table>"
+    body = url <> "<br><br>" <> "<table border=\"1\" cellpadding=\"3\" cellspacing=\"0\">" <> title <> Enum.join(items) <> "</table>"
 
-    from = Application.get_env(:lunch_order, :from_mail_address)
-    to = Application.get_env(:lunch_order, :closing_to_address)
-    Email.send_email_html(from, to, subject, body)
+    from = Application.get_env(:lunch_order, :from_address)
+    to = Application.get_env(:lunch_order, :admin_address)
+    bcc = Application.get_env(:lunch_order, :bcc_address)
+    Email.send_email_html(from, to, bcc, subject, body)
   end
 
   defp log_data(date, orders, users) do
