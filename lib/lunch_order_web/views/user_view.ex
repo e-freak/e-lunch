@@ -3,7 +3,9 @@ defmodule LunchOrderWeb.UserView do
   alias LunchOrderWeb.UserView
 
   def render("index.json", %{users: users}) do
-    render_many(users, UserView, "user.json")
+    # RITS, 管理者が先頭にくる様にソート
+    Enum.sort(users, &(&1.organization == "RITS" && !&2.is_admin))
+    |> render_many(UserView, "user.json")
   end
 
   def render("show.json", %{user: user}) do
