@@ -224,15 +224,12 @@ defmodule LunchOrder.Orders do
 
   def detail_order(%{year_month: year_month, users: users}) do
 
-    days_in_month = Date.from_iso8601!(year_month <> "-01") |> Date.days_in_month
     for user <- users do
       orders = list_orders(%{"month" => year_month, "user" => Integer.to_string(user.id)})
       amount = Enum.reduce(orders, 0, fn x, acc -> Menus.get_price!(x.lunch_type) * x.lunch_count + acc end)
-      orders = Enum.map(1..days_in_month, fn day ->
-        if order = Enum.find(orders, fn order -> order.date.day == day end), do: order.lunch_type, else: 0
-      end)
+      order_data = Enum.map(orders, fn order -> [order.date.day, order.lunch_type, order.lunch_count] end)
 
-      %{organization: user.organization, id: user.user_id, floor: user.floor, name: user.name, amount: amount, orders: orders}
+      %{organization: user.organization, id: user.user_id, floor: user.floor, name: user.name, amount: amount, orders: order_data}
     end
     |> Enum.sort(&(&1.floor <= &2.floor))
   end
