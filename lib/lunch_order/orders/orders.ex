@@ -235,17 +235,22 @@ defmodule LunchOrder.Orders do
   end
 
 
+  # 指定月に注文のあるユーザーを列挙
+  def get_ordered_user_ids(year_month) do
 
+    month_start = Date.from_iso8601!(year_month <> "-01")
+    days = Date.days_in_month(month_start)
+    month_end = Date.from_iso8601!(year_month <> "-" <> Integer.to_string(days))
 
+    #whereの中で変数を使うには変数名の前に^が必要！
+    Repo.all(
+      from order in Order,
+        where: order.date >= ^month_start and order.date <= ^month_end,
+      select: order
+    )
+    |> Enum.map(fn order -> String.to_integer(order.user_id) end)
+    |> Enum.uniq
 
-  # def get_today_order do
-  #   date = Ecto.Date.utc
+  end
 
-  #   query = from(
-  #     order in Order,
-  #     where: order
-  #   )
-
-  #   Repo.get_by(Order, date: date)
-  # end
 end

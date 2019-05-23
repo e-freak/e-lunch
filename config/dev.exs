@@ -59,7 +59,7 @@ config :lunch_order, LunchOrder.Repo,
 
 config :lunch_order, LunchOrder.Mailer,
   adapter: Bamboo.SMTPAdapter,
-  server: "mail.ricoh.co.jp",
+  server: "phoenix.com",
   port: 25,
   username: "",
   password: "",
@@ -67,15 +67,17 @@ config :lunch_order, LunchOrder.Mailer,
   ssl: false,
   retries: 1
 
-# config :lunch_order, LunchOrder.Scheduler,
-#   timezone: "Asia/Tokyo",
-#   jobs: [
-#     {"20 9 * * *", {LunchOrder.Closing, :close_order, []}}
-#   ]
+config :lunch_order, LunchOrder.Scheduler,
+  timezone: "Asia/Tokyo",
+  jobs: [
+    {"20 9 * * *", {LunchOrder.Closing, :close_order, []}},
+    {"0 6 25 * *", {LunchOrder.Alert, :notify_create_order, []}}
+  ]
 
 config :lunch_order,
   order_time_limit: ~T[09:20:00],
   from_address: {"お弁当注文システム", "no-reply@phoenix.com"},
   admin_address: ["no-reply@phoenix.com"],
   bcc_address: ["no-reply@phoenix.com"],
+  url: "https://phoenix.com",
   fax_url: "https://phoenix.com/faxinfo"

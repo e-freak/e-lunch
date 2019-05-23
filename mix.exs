@@ -48,7 +48,8 @@ defmodule LunchOrder.Mixfile do
       {:bamboo, "~> 0.7"},
       {:bamboo_smtp, "~> 1.2.1"},
       {:quantum, "~> 2.3"},
-      {:timex, "~> 3.0"}
+      {:timex, "~> 3.0"},
+      {:logger_file_backend, "~> 0.0.10"}
     ]
   end
 
