@@ -16,7 +16,9 @@ defmodule LunchOrder.Alert do
     subject = "■■■ 鳥取お弁当注文アラート ■■■"
     body = "翌月以降お弁当を注文する方は注文書を作成してください。\n\nお弁当注文システムのリンク\n#{url}"
 
-    Email.send_email(from_address, [], [], email_list, subject, body)
+    Enum.each(email_list, fn email ->
+      Email.send_email(from_address, email, [], [], subject, body)
+    end)
 
   end
 
