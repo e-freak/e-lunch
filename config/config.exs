@@ -18,9 +18,19 @@ config :lunch_order, LunchOrderWeb.Endpoint,
            adapter: Phoenix.PubSub.PG2]
 
 # Configures Elixir's Logger
-config :logger, :console,
-  format: "$time $metadata[$level] $message\n",
-  metadata: [:user_id]
+# config :logger, :console,
+#   format: "$time $metadata[$level] $message\n",
+#   metadata: [:user_id]
+
+config :logger,
+  backends: [{LoggerFileBackend, :file}]
+
+config :logger, :file,
+  format: "$date $time $metadata[$level] $message\n",
+  path: "log/e-lunch.log",
+  level: :error
+
+
 
 # COnfigures Guardian
 config :lunch_order, LunchOrder.Guardian,
