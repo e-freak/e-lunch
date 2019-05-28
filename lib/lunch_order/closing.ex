@@ -16,9 +16,6 @@ defmodule LunchOrder.Closing do
 
       # 管理者メール通知
       notify_admin(today, orders, users)
-
-      # 注文ログ出力
-      log_data(today, orders, users)
     end
   end
 
@@ -57,25 +54,6 @@ defmodule LunchOrder.Closing do
     to = Application.get_env(:lunch_order, :admin_address)
     bcc = Application.get_env(:lunch_order, :bcc_address)
     Email.send_email_html(from, to, bcc, subject, body)
-  end
-
-  defp log_data(date, orders, users) do
-
-    # フォルダ生成
-    dir_path = "log/" <> String.slice(date, 0..-4) # log/YYYY-MM
-    File.mkdir dir_path
-
-    # ログファイル生成
-    file_path = dir_path <> "/" <> date <> ".log"
-    {:ok, file} = File.open(file_path, [:write, :utf8, :append])
-
-    IO.write file, "座席, 名前, 注文内容, 個数\n"
-    Enum.each(orders, fn order ->
-      user = Enum.find(users, fn user -> user.id == String.to_integer(order.user_id) end)
-      IO.write file, "#{user.floor}階, #{user.name}, #{Menus.get_symbol!(order.lunch_type)}, #{order.lunch_count}\n"
-    end)
-
-    File.close file
   end
 
 end

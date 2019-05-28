@@ -26,7 +26,7 @@ config :logger,
   backends: [{LoggerFileBackend, :file}]
 
 config :logger, :file,
-  format: "$date $time $metadata[$level] $message\n",
+  format: "$date $time $message\n",
   path: "log/e-lunch.log",
   level: :error
 

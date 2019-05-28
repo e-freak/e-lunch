@@ -3,6 +3,9 @@ defmodule LunchOrderWeb.HolidayController do
 
   alias LunchOrder.Holidays
   alias LunchOrder.Holidays.Holiday
+  alias LunchOrder.Users
+
+  require Logger
 
   action_fallback LunchOrderWeb.FallbackController
 
@@ -28,17 +31,25 @@ defmodule LunchOrderWeb.HolidayController do
 
     with {:ok, %Holiday{} = holiday} <- Holidays.update_holiday(year, month, filtered_params) do
 
+      # メール通知
+      send_email(conn, year, month, filtered_params)
+
+      # 当日以降の休日に設定されていた注文を削除する
       today = Timex.now("Asia/Tokyo") |> DateTime.to_date
-      Enum.each(holiday.days, fn day ->
-        {:ok, date} = Date.new(String.to_integer(year), String.to_integer(month), day)
-        # 当日以降の休日に設定されていた注文を削除する
-        if (Date.compare(date, today) == :gt) do
-          LunchOrder.Orders.delete_orders Date.to_string(date)
+      users = Users.list_users
+      Enum.map(holiday.days, fn day -> Date.new(String.to_integer(year), String.to_integer(month), day) |> elem(1) end)
+      |> Enum.filter(fn date -> Date.compare(date, today) == :gt end)
+      |> Enum.map(fn date ->
+        # 注文削除
+        orders = Date.to_string(date) |> LunchOrder.Orders.delete_orders
+        if !Enum.empty?(orders) do
+          # ログ出力
+          user_list = Enum.map(orders, fn order -> Enum.find(users, fn user -> user.id == String.to_integer(order.user_id) end) end)
+          log_delete_order(date, user_list)
         end
       end)
 
-      # メール通知
-      send_email(conn, year, month, filtered_params)
+
 
       render(conn, "show.json", holiday: holiday)
     end
@@ -46,6 +57,10 @@ defmodule LunchOrderWeb.HolidayController do
 
   defp send_email(conn, year, month, days) do
     login_user = LunchOrder.Guardian.get_user_from_token(conn)
+
+    # ログ
+    log_set_holiday(login_user, year, month, days)
+
     subject = "(管理者用) #{login_user.name} さんが #{year}年#{String.to_integer(month)}月 の祝日を設定しました"
     body = "祝日設定: #{Enum.join(days, ", ")}"
 
@@ -53,5 +68,24 @@ defmodule LunchOrderWeb.HolidayController do
     to = Application.get_env(:lunch_order, :admin_address)
     bcc = Application.get_env(:lunch_order, :bcc_address)
     LunchOrder.Email.send_email(from, to, [], bcc, subject, body)
+  end
+
+  defp log_set_holiday(user, year, month, days) do
+
+    user_name = String.split(user.email, "@") |> List.first
+    message = "[info] HolidayController.update <#{user_name}> #{year}/#{month} |#{Enum.join(days, ",")}|"
+    Logger.error(message)
+
+  end
+
+  defp log_delete_order(date, users) do
+
+    user_name_log = Enum.map_join(users, ",", fn user ->
+      String.split(user.email, "@") |> List.first
+    end)
+
+    message = "[info] HolidayController.update delete order <#{date}> |#{user_name_log}|"
+    Logger.error(message)
+
   end
 end

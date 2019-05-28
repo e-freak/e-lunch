@@ -178,11 +178,11 @@ defmodule LunchOrder.Orders do
 
   # 任意の日の注文を全て削除
   def delete_orders(date) do
-    date
-    |> LunchOrder.Orders.list_all_orders
-    |> Enum.each(fn order ->
-      LunchOrder.Orders.delete_order order
-    end)
+
+    orders = LunchOrder.Orders.list_all_orders(date)
+    Enum.each(orders, fn order -> LunchOrder.Orders.delete_order order end)
+    orders # ログ用に戻り値を設定
+
   end
 
   # 指定ユーザーの注文を全て削除
