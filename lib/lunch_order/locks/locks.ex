@@ -75,8 +75,8 @@ defmodule LunchOrder.Locks do
       user = Repo.get_by(User, email: email)
       subject = "#{user.name} さんのアカウントがロックされました"
       body = "ログインに複数回失敗したため、アカウントを10分間ロックします。\n\n" <>
-             "パスワードを忘れた場合は、管理者にメールでパスワード変更の旨をご連絡ください。\n" <>
-             "管理者は[CC]のメンバーです。"
+             "パスワードを忘れた場合は、管理者にメールでパスワードリセットの依頼をしてください。\n" <>
+             "管理者は本メールの[Cc]のメンバーです。"
       LunchOrder.Email.send_email(from, email, cc, bcc, subject, body)
     end
   end
