@@ -39,7 +39,43 @@ defmodule LunchOrder.Closing do
     date = String.replace(date, "-", "/")
     subject = "(管理者用) #{date} 締め処理が完了しました"
 
+    # URL
+    url = Application.get_env(:lunch_order, :fax_url)
+
+    # 注文合計
+    outline = create_table_outline(orders)
+
+    # 注文詳細
+    detail = create_table_detail(orders, users)
+
     # HTML本文作成
+    body = url <> "<br><br>" <> outline <> "<br>" <> detail
+
+    from = Application.get_env(:lunch_order, :from_address)
+    to = Application.get_env(:lunch_order, :admin_address)
+    bcc = Application.get_env(:lunch_order, :bcc_address)
+    Email.send_email_html(from, to, bcc, subject, body)
+  end
+
+  # 注文合計の表
+  defp create_table_outline(orders) do
+
+    menus = Menus.list_menus
+    outline = Enum.map(menus, fn menu ->
+      count = Enum.filter(orders, fn order -> order.lunch_type == menu.id end)
+      |> Enum.reduce(0, fn order, acc -> order.lunch_count + acc end)
+      %{symbol: menu.symbol, count: count}
+    end)
+    sum = Enum.reduce(outline, 0, fn data, acc -> data.count + acc end)
+
+    title = "<tr>" <> Enum.map_join(outline, &("<td>" <> &1.symbol <> "</td>")) <> "<td>合計</td></tr>"
+    item = "<tr>" <> Enum.map_join(outline, &("<td>" <> to_string(&1.count) <> "</td>")) <> "<td>#{sum}</td></tr>"
+
+    "<table border=\"1\" cellpadding=\"3\" cellspacing=\"0\">" <> title <> item <> "</table>"
+  end
+
+  # 注文詳細の表
+  defp create_table_detail(orders, users) do
     orders = Enum.sort(orders, &(&1.floor <= &2.floor))
     title = "<tr><td>座席</td><td>名前</td><td>注文内容</td><td>個数</td></tr>"
     items = Enum.map(orders, fn order ->
@@ -47,13 +83,8 @@ defmodule LunchOrder.Closing do
       menu = LunchOrder.Menus.get_symbol!(order.lunch_type)
       "<tr><td>#{order.floor}階</td><td>#{user.name}</td><td>#{menu}</td><td>#{order.lunch_count}</td></tr>"
     end)
-    url = Application.get_env(:lunch_order, :fax_url)
-    body = url <> "<br><br>" <> "<table border=\"1\" cellpadding=\"3\" cellspacing=\"0\">" <> title <> Enum.join(items) <> "</table>"
 
-    from = Application.get_env(:lunch_order, :from_address)
-    to = Application.get_env(:lunch_order, :admin_address)
-    bcc = Application.get_env(:lunch_order, :bcc_address)
-    Email.send_email_html(from, to, bcc, subject, body)
+    "<table border=\"1\" cellpadding=\"3\" cellspacing=\"0\">" <> title <> Enum.join(items) <> "</table>"
   end
 
 end
