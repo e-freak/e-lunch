@@ -32,10 +32,15 @@ config :logger, :file,
 
 
 
-# COnfigures Guardian
+# Configures Guardian
 config :lunch_order, LunchOrder.Guardian,
   issuer: "lunch_order",
   secret_key: "pHl6RIeQmZS/JOT/osu76pTE3+O3pXGPq74PgLqDUBGzei4cStZDvzpOTJ/emkd6"
+
+config :guardian, Guardian.DB,
+  repo: LunchOrder.Repo,
+  schema_name: "guardian_tokens",
+  sweep_interval: 1440
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

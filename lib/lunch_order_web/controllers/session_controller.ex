@@ -3,6 +3,7 @@ defmodule LunchOrderWeb.SessionController do
 
   alias LunchOrder.Users.User
   alias LunchOrder.Locks
+  alias LunchOrder.AuthTokens
 
   def login(conn, %{"email" => email, "password" => password_base64}) do
 
@@ -21,7 +22,8 @@ defmodule LunchOrderWeb.SessionController do
         {:ok, user} ->
           Locks.reset_lock(lock)
 
-          {:ok, jwt, _full_claims} =  LunchOrder.Guardian.encode_and_sign(user)
+          {:ok, jwt, full_claims} =  LunchOrder.Guardian.encode_and_sign(user, %{}, ttl: {60, :minute}) # 60分間有効
+          {:ok, _token} = AuthTokens.after_encode_and_sign(user, full_claims, jwt, %{}) # DB登録
           conn
           |> render("login.json", user: user, jwt: jwt)
         {:error, _reason} ->
@@ -33,6 +35,26 @@ defmodule LunchOrderWeb.SessionController do
 
     end
 
+  end
+
+  def logout(conn, _params) do
+    token = LunchOrder.Guardian.get_token(conn)
+    case confirm_token(token) do
+      {:ok, claims} ->
+        AuthTokens.on_revoke(claims, token, %{})
+        render(conn, "logout.json", message: "Logout success")
+      {:error, _} ->
+        render(conn, "logout.json", message: "Logout error")
+    end
+  end
+
+  defp confirm_token(token) do
+    case LunchOrder.Guardian.decode_and_verify(token) do
+      {:ok, clams} ->
+        AuthTokens.on_verify(clams, token, %{})
+      _ ->
+        {:error, :not_decode_and_verify}
+    end
   end
 
 end

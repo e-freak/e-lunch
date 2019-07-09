@@ -14,7 +14,8 @@ defmodule LunchOrderWeb.Router do
   end
 
   pipeline :authenticated do
-    plug LunchOrder.Guardian.AuthPipeline
+    # plug LunchOrder.Guardian.AuthPipeline
+    plug LunchOrder.Guardian.AuthDBPipeline
   end
 
   pipeline :admin_authenticated do
@@ -34,6 +35,7 @@ defmodule LunchOrderWeb.Router do
     pipe_through :api
 
     post "/login", SessionController, :login
+    post "/logout", SessionController, :logout
 
     # ログイン後
     pipe_through :authenticated

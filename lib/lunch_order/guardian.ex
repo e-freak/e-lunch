@@ -30,9 +30,13 @@ defmodule LunchOrder.Guardian do
     {:error, :reason_for_error}
   end
 
-  def get_user_from_token(conn) do
+  def get_token(conn) do
     auth_header = Enum.find(conn.req_headers, fn header -> elem(header, 0) == "authorization" end)
-    token = String.slice(elem(auth_header, 1), 7..-1)
+    String.slice(elem(auth_header, 1), 7..-1)
+  end
+
+  def get_user_from_token(conn) do
+    token = get_token(conn)
     decode = LunchOrder.Guardian.decode_and_verify(token)
     id = String.to_integer(elem(decode, 1)["sub"])
     Users.get_user!(id)

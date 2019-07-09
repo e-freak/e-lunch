@@ -43,12 +43,13 @@ defmodule LunchOrder.Mixfile do
       {:cowboy, "~> 1.0"},
       {:plug_cowboy, "~> 1.0"},
       {:guardian, "~> 1.0"},
+      {:guardian_db, "~> 1.0"},
       {:comeonin, "~> 3.0"},
       {:poison, "~> 3.1"},
       {:bamboo, "~> 0.7"},
       {:bamboo_smtp, "~> 1.2.1"},
       {:quantum, "~> 2.3"},
-      {:timex, "~> 3.0"},
+      {:timex, "~> 3.6"},
       {:logger_file_backend, "~> 0.0.10"}
     ]
   end

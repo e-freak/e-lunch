@@ -8,4 +8,8 @@ defmodule LunchOrderWeb.SessionView do
   def render("error.json", %{message: msg}) do
     %{"error": msg}
   end
+
+  def render("logout.json", %{message: msg}) do
+    %{message: msg}
+  end
 end
