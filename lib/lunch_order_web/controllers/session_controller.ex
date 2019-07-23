@@ -44,7 +44,9 @@ defmodule LunchOrderWeb.SessionController do
         AuthTokens.on_revoke(claims, token, %{})
         render(conn, "logout.json", message: "Logout success")
       {:error, _} ->
-        render(conn, "logout.json", message: "Logout error")
+        conn
+        |> put_status(401)
+        |> render("logout.json", message: "Logout error")
     end
   end
 
