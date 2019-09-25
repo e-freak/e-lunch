@@ -31,8 +31,17 @@ defmodule LunchOrder.Guardian do
   end
 
   def get_token(conn) do
-    auth_header = Enum.find(conn.req_headers, fn header -> elem(header, 0) == "authorization" end)
-    String.slice(elem(auth_header, 1), 7..-1)
+    # Refererヘッダーが不正な場合、トークンを無効にする
+    is_valid_referer = is_valid_referer?(conn)
+    auth_header = List.first(Plug.Conn.get_req_header(conn, "authorization"))
+    if is_valid_referer do
+      case auth_header do
+        nil -> ""
+        _ -> String.slice(auth_header, 7..-1)
+      end
+    else
+      ""
+    end
   end
 
   def get_user_from_token(conn) do
@@ -40,6 +49,15 @@ defmodule LunchOrder.Guardian do
     decode = LunchOrder.Guardian.decode_and_verify(token)
     id = String.to_integer(elem(decode, 1)["sub"])
     Users.get_user!(id)
+  end
+
+  # Refererチェック
+  def is_valid_referer?(conn) do
+    referer = List.first(Plug.Conn.get_req_header(conn, "referer"))
+    case referer do
+      nil -> true # 空の場合、チェックしない
+      _ -> String.starts_with?(referer, Application.get_env(:lunch_order, :url) <> "/")
+    end
   end
 
 end
