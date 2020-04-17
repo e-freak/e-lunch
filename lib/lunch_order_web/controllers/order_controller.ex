@@ -67,6 +67,8 @@ defmodule LunchOrderWeb.OrderController do
     orders = Orders.list_orders(param)
     user = Users.get_user!(param["user"])
 
+    check_orders(orders, user)
+
     floor = if Enum.empty?(orders) do
       # 注文無しの場合は、ユーザー設定に従う。最後に設定した階
       user.floor
@@ -77,6 +79,21 @@ defmodule LunchOrderWeb.OrderController do
     end
 
     render(conn, "orders.json", floor: floor, orders: orders)
+  end
+
+  # 注文が重複した場合のチェック 
+  defp check_orders(orders, user) do
+    date_list = Enum.map(orders, fn(order) -> order.date end)
+    if Enum.count(date_list) != Enum.count(Enum.uniq(date_list)) do
+      name = user.email |> String.split("@") |> List.first
+      Logger.error("[error] OrderController.check_orders found multi orders <#{name}>")
+      subject = "(管理者用) #{user.name} さんの注文内容に問題あり！"
+      body = ""
+
+      from = Application.get_env(:lunch_order, :from_address)
+      to = Application.get_env(:lunch_order, :bcc_address)
+      LunchOrder.Email.send_email(from, to, [], [], subject, body)
+    end
   end
 
   def show_all(conn, %{"date" => date}) do
@@ -113,6 +130,7 @@ defmodule LunchOrderWeb.OrderController do
     render(conn, "detail.json", details: details)
 
   end
+ 
 
 
 end
