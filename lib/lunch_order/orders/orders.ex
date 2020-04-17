@@ -84,8 +84,7 @@ defmodule LunchOrder.Orders do
     [year, month] = String.split(attrs["month"], "-")
     holidays = LunchOrder.Holidays.get_holiday(String.to_integer(year), String.to_integer(month))
 
-
-    for order <- attrs["orders"] do
+    for order <- Enum.uniq(attrs["orders"]) do
       # YYYY-MM-DD形式
       day = Integer.to_string(Enum.at(order, 0))
       date = attrs["month"] <> "-" <> String.pad_leading(day, 2, "0") #ゼロ埋め
@@ -137,12 +136,12 @@ defmodule LunchOrder.Orders do
 
 
   defp get_order(%{user_id: user_id, date: date}) do
-    Repo.one(
+    List.first(Repo.all(
       from order in Order,
         where: order.date == ^date,
         where: order.user_id == ^user_id,
         select: order
-    )
+    ))
   end
 
   @doc """
