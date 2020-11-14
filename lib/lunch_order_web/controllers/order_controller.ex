@@ -114,6 +114,15 @@ defmodule LunchOrderWeb.OrderController do
 
   end
 
+  # 発注FAX文書用データ(monthly)
+  def show_fax_month(conn, %{"month" => month}) do
+
+    orders = Orders.list_all_orders_month(month)
+    users = Users.list_users
+
+    render(conn, "fax_orders.json", orders: orders, users: users)
+
+  end
 
   def outline(conn, %{"month" => month}) do
 

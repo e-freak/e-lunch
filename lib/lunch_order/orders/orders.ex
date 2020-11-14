@@ -49,6 +49,18 @@ defmodule LunchOrder.Orders do
     )
   end
 
+  def list_all_orders_month(month) do
+    month_start = Date.from_iso8601!(month <> "-01")
+    days = Date.days_in_month(month_start)
+    month_end = Date.from_iso8601!(month <> "-" <> Integer.to_string(days))
+
+    Repo.all(
+      from order in Order,
+        where: order.date >= ^month_start and order.date <= ^month_end,
+        select: order
+    )
+  end
+
   @doc """
   Gets a single order.
 

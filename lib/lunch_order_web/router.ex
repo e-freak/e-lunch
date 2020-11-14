@@ -43,6 +43,7 @@ defmodule LunchOrderWeb.Router do
     # この2つは管理者用だが、下に持って行くと、先に/orders/:userがマッチしてしまうので上に置いておく
     get "/orders/outline/:month", OrderController, :outline
     get "/orders/fax/:date", OrderController, :show_fax_data
+    get "/orders/faxmonth/:month", OrderController, :show_fax_month
     get "/orders/detail/:year_month", OrderController, :show_detail
 
     post "/orders/:user/:month", OrderController, :create
