@@ -106,7 +106,7 @@ defmodule LunchOrderWeb.OrderView do
 
 
 
-  @floor_list 5..9
+  @floor_list 5..8
   defp count_menu_by_floor(orders) do
     Map.new(@floor_list, fn floor ->
       floor_orders = Enum.filter(orders, fn order -> order.floor == floor end)
